@@ -1,2 +1,3 @@
-# ignore the local generated .exe file
+# ignore local generated files
 *.exe
+*.vscode
