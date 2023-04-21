@@ -3,8 +3,8 @@
 #include <math.h>
 #include <SDL2/SDL.h>
 
-int WIDTH = 600, HEIGHT = 600;
-int gameWidth = 20, gameHeight = 20;
+int WIDTH = 400, HEIGHT = 500;
+int gameWidth = 9, gameHeight = 9;
 
 struct mine_sites{
     SDL_Rect quadrant;
@@ -30,8 +30,69 @@ struct grid_textures{
     SDL_Texture *flag;
     SDL_Texture *mine;
     SDL_Texture *blown_mine;
+
+    SDL_Texture *frame_easy;
+
+    SDL_Texture *smiley_neutral;
 };
 typedef grid_textures gameTxtr;
+
+struct mine_position{
+    int x;
+    int y;
+};
+typedef struct mine_position minePos;
+
+void init_textures(gameTxtr *textures, SDL_Renderer *renderer){
+    SDL_Surface *surface = SDL_LoadBMP("./textures/one.bmp");
+    textures->one = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/two.bmp");
+    textures->two = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/three.bmp");
+    textures->three = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/four.bmp");
+    textures->four = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/five.bmp");
+    textures->five = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/six.bmp");
+    textures->six = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/seven.bmp");
+    textures->seven = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/eight.bmp");
+    textures->eight = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+
+    surface = SDL_LoadBMP("./textures/empty.bmp");
+    textures->empty = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/flag.bmp");
+    textures->flag = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/block.bmp");
+    textures->block = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/bomb.bmp");
+    textures->mine = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/blown_bomb.bmp");
+    textures->blown_mine = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+
+    surface = SDL_LoadBMP("./textures/frame_easy.bmp");
+    textures->frame_easy = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+
+    surface = SDL_LoadBMP("./textures/mood_neutral.bmp");
+    textures->smiley_neutral = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+}
 
 void init_block(blocks square[][100]){
     for(int i = 0; i < gameWidth; i++){
@@ -147,78 +208,29 @@ int main(int agrc, char *argv[]){
         printf("Could not initialize window. Error: %s", SDL_GetError());
         return 1;
     }
-    SDL_SetWindowResizable(window, SDL_TRUE);
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
     SDL_Event event;
-    SDL_DisplayMode *mode;
 
     gameTxtr textures;
-
-    SDL_Surface *surface = SDL_LoadBMP("./textures/one.bmp");
-    textures.one = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/two.bmp");
-    textures.two = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/three.bmp");
-    textures.three = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/four.bmp");
-    textures.four = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/five.bmp");
-    textures.five = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/six.bmp");
-    textures.six = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/seven.bmp");
-    textures.seven = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/eight.bmp");
-    textures.eight = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-
-    surface = SDL_LoadBMP("./textures/empty.bmp");
-    textures.empty = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/flag.bmp");
-    textures.flag = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/block.bmp");
-    textures.block = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/bomb.bmp");
-    textures.mine = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/blown_bomb.bmp");
-    textures.blown_mine = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
+    init_textures(&textures, renderer);
 
     bool leftdown = false;
     bool rightdown = false;
     bool r_down = false;
-    bool up_arrow_down;
-    bool down_arrow_down;
-    bool right_arrow_down = false;
-    bool left_arrow_down = false;
     bool gameOver = false;
     int mousex, mousey;
     int lastWIDTH = 0, lastHEIGHT = 0;
     int lastGameWidth = 0, lastGameHeight = 0;
     int smileyMood = 0;
     int totalMines;
-    int centerX, centerY;
+    int difficulty = 1;
+    minePos mineTracker[100 * 100];
+    int mineTrackerSize;
 
     SDL_Rect mouseRect;
     mouseRect.w = 1;
     mouseRect.h = 1;
-
     SDL_Rect intersection;
-
-    SDL_Rect triggerMine;
-    triggerMine.w = 1;
-    triggerMine.h = 1;
     SDL_Rect smileyRect;
     SDL_Rect frame;
     int blocksize;
@@ -229,14 +241,11 @@ int main(int agrc, char *argv[]){
         leftdown = false;
         rightdown = false;
         r_down = false;
-        up_arrow_down = false;
-        down_arrow_down = false;
-        right_arrow_down = false;
-        left_arrow_down = false;
 
         if(SDL_PollEvent(&event)){
             if(event.type == SDL_QUIT){
                 running = false;
+                SDL_DestroyWindow(window);
             }
             if(event.type == SDL_MOUSEBUTTONDOWN){
                 if(event.button.button == SDL_BUTTON_LEFT){
@@ -257,19 +266,22 @@ int main(int agrc, char *argv[]){
                 }
             }
         }
+
         SDL_GetWindowSize(window, &WIDTH, &HEIGHT);
         if(WIDTH != lastWIDTH || HEIGHT != lastHEIGHT || gameWidth != lastGameWidth || gameHeight != lastGameHeight){
-            if(gameWidth > gameHeight){
-                blocksize = (WIDTH - WIDTH/10)/gameWidth;
-            }
-            else{
-                blocksize = (HEIGHT - HEIGHT/10)/gameHeight;
-            }
-            frame.h = blocksize * gameHeight;
-            frame.w = blocksize * gameWidth;
-            frame.x = WIDTH/2 - frame.w/2;
-            frame.y = HEIGHT/2 - frame.h/2;
+            if(difficulty == 1){
+                blocksize = (WIDTH - 34)/gameWidth;
+  
+                frame.w = blocksize * gameWidth;
+                frame.h = blocksize * gameHeight;
+                frame.x = WIDTH/2 - frame.w/2;
+                frame.y = HEIGHT - frame.h - frame.x;
 
+                smileyRect.w = 7*(frame.y - frame.x * 2)/8;
+                smileyRect.h = 7*(frame.y - frame.x * 2)/8;
+                smileyRect.x = WIDTH/2 - smileyRect.w/2;
+                smileyRect.y = frame.y - frame.y/2 - smileyRect.h/2;
+            }
             for(int i = 0; i < gameWidth; i++){
                 for(int j = 0; j < gameHeight; j++){
                     block[i][j].quadrant.w = blocksize;
@@ -277,7 +289,8 @@ int main(int agrc, char *argv[]){
                     block[i][j].quadrant.x = frame.x + block[i][j].quadrant.w * i;
                     block[i][j].quadrant.y = frame.y + block[i][j].quadrant.h * j;
                 }
-            }
+            }       
+
             lastWIDTH = WIDTH;
             lastHEIGHT = HEIGHT;
             lastGameWidth = gameWidth;
@@ -286,54 +299,82 @@ int main(int agrc, char *argv[]){
         
         if(r_down){
             init_block(block);
+            gameOver = false;
+            for(int a = 0; a < (gameWidth * gameHeight); a++){
+                mineTracker[a].x = 0;
+                mineTracker[a].y = 0;
+            }
+            //SDL_SetWindowSize(window, frame.w, frame.h);
         }
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        SDL_RenderDrawRect(renderer, &frame);  
-
-        for(int i = 0; i < gameWidth; i++)
-        {
-            for(int j = 0; j < gameHeight; j++)
+        if(!gameOver){
+            for(int i = 0; i < gameWidth; i++)
             {
-                if(SDL_IntersectRect(&mouseRect, &block[i][j].quadrant, &intersection)){
-                    if(leftdown && !block[i][j].hasflag){
-                        block[i][j].isshown = true;
-                        if(block[i][j].hasmine){
-                            uint32_t randDelay;
-                            totalMines = 0;
-                            gameOver = true;
-                            centerX = i;
-                            centerY = j;
-                            for(int a = 0; a < gameWidth; a++){
-                                for(int b = 0; b < gameHeight; b++){
-                                    if(block[a][b].hasmine){
-                                        block[a][b].isshown = true;
-                                        totalMines++;
-                                        show_grid(block, &textures, renderer);
+                for(int j = 0; j < gameHeight; j++)
+                {
+                    if(SDL_IntersectRect(&mouseRect, &block[i][j].quadrant, &intersection)){
+                        if(leftdown && !block[i][j].hasflag){
+                            block[i][j].isshown = true;
+                            if(block[i][j].hasmine){
+                                block[i][j].isshown = true;
+                                totalMines = 0;
+                                gameOver = true;
+                                for(int a = 0; a < gameWidth; a++){
+                                    for(int b = 0; b < gameHeight; b++){
+                                        if(block[a][b].hasmine){
+                                            mineTracker[totalMines].x = a;
+                                            mineTracker[totalMines].y = b;
+                                            totalMines++;
+                                        }
                                     }
                                 }
+                                mineTrackerSize = totalMines;
+                            }
+                            else{
+                                reveal_area(block, i, j);
                             }
                         }
-                        else{
-                            reveal_area(block, i, j);
-                        }
-                    }
-                    if(rightdown && !block[i][j].isshown){
-                        if(block[i][j].hasflag){
-                            block[i][j].hasflag = false;
-                        }
-                        else{
-                            block[i][j].hasflag = true;
+                        if(rightdown && !block[i][j].isshown){
+                            if(block[i][j].hasflag){
+                                block[i][j].hasflag = false;
+                            }
+                            else{
+                                block[i][j].hasflag = true;
+                            }
                         }
                     }
                 }
+            }  
+        }
+        else{
+            int num = 5;
+            if(totalMines > 1)
+            {
+                srand(time(NULL) * SDL_GetTicks64());
+                while(mineTracker[num].x == 0 && mineTracker[num].y == 0){
+                    num = rand() % (mineTrackerSize);
+                }
+                block[mineTracker[num].x][mineTracker[num].y].isshown = true;
+                mineTracker[num].x = 0;
+                mineTracker[num].y = 0;   
+                if(totalMines > mineTrackerSize - 2){
+                    SDL_Delay(rand() % 700);
+                }
+                else if(totalMines > mineTrackerSize/2){
+                    SDL_Delay(rand() % 200);
+                }
+                else{
+                    SDL_Delay(rand() % 50);
+                }
+                totalMines--;
             }
         }
-
-        show_grid(block, &textures, renderer);
+        SDL_RenderCopy(renderer, textures.frame_easy, NULL, NULL);
+        SDL_RenderCopy(renderer, textures.smiley_neutral, NULL, &smileyRect);
+        show_grid(block, &textures, renderer); 
     }
 
     return 0;
