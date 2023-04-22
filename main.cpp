@@ -514,297 +514,298 @@ void show_time(SDL_Renderer *renderer, gameTxtr *textures, mcDisp *mineCounter, 
     }
 }
 
-int main(int agrc, char *argv[]){
+    int main(int agrc, char *argv[]){
 
-    SDL_Init(SDL_INIT_EVERYTHING);
+        SDL_Init(SDL_INIT_EVERYTHING);
 
-    SDL_Window *window = SDL_CreateWindow("Minesweeper", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, 0);
-    if(window == NULL){
-        printf("Could not initialize window. Error: %s", SDL_GetError());
-        return 1;
-    }
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
-    SDL_Event event;
-
-    gameTxtr textures;
-    init_textures(&textures, renderer);
-
-    bool leftdown = false;
-    bool rightdown = false;
-    int mousex, mousey;
-    
-    int lastWIDTH = 0, lastHEIGHT = 0;
-    int lastGameWidth = 0, lastGameHeight = 0;
-
-    bool firstRun = true;
-    bool gameStarted = false;
-    int difficulty = 1;
-    int mineCount = 0;
-    int totalMines = 0;
-    int totalFlags = 0;
-    float delay = 0;
-    minePos mineTracker[100 * 100];
-    int mineTrackerSize;
-    
-    int gameStartTime = 0;
-    int timePassed = 0;
-
-    SDL_Rect mouseRect;
-    mouseRect.w = 1;
-    mouseRect.h = 1;
-
-    SDL_Rect intersection;
-
-    SDL_Rect smileyRect;
-    smileyClicks smileyState;
-
-    mcDisp mineCounterRect;
-    tmrDisp timerRect;
-
-    SDL_Rect frame;
-    int blocksize;
-    blocks block[100][100];
-    
-    bool running = true;
-    while(running){
-        leftdown = false;
-        rightdown = false;
-
-        if(SDL_PollEvent(&event)){
-            if(event.type == SDL_QUIT){
-                running = false;
-                SDL_DestroyWindow(window);
-            }
-            if(event.type == SDL_MOUSEBUTTONDOWN){
-                if(event.button.button == SDL_BUTTON_LEFT){
-                    leftdown = true;
-                }
-                else if(event.button.button == SDL_BUTTON_RIGHT){
-                    rightdown = true;
-                }
-            }
-            if(event.type == SDL_MOUSEMOTION){
-                SDL_GetMouseState(&mousex, &mousey);
-                mouseRect.x = mousex;
-                mouseRect.y = mousey;
-            }
-            if(event.type == SDL_KEYDOWN){
-
-            }
+        SDL_Window *window = SDL_CreateWindow("Minesweeper", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, 0);
+        if(window == NULL){
+            printf("Could not initialize window. Error: %s", SDL_GetError());
+            return 1;
         }
+        SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
+        SDL_Event event;
 
-        SDL_GetWindowSize(window, &WIDTH, &HEIGHT);
-        if(WIDTH != lastWIDTH || HEIGHT != lastHEIGHT || gameWidth != lastGameWidth || gameHeight != lastGameHeight)
-        {
-            blocksize = (400 - 34)/gameWidth;
-            if(difficulty == 1){
-                frame.w = blocksize * gameWidth;
-                frame.h = blocksize * gameHeight;
-                frame.x = WIDTH/2 - frame.w/2;
-                frame.y = HEIGHT - frame.h - frame.x;
+        gameTxtr textures;
+        init_textures(&textures, renderer);
 
-                smileyRect.w = 7*(frame.y - frame.x * 2)/8;
-                smileyRect.h = 7*(frame.y - frame.x * 2)/8;
-                smileyRect.x = WIDTH/2 - smileyRect.w/2;
-                smileyRect.y = frame.y - frame.y/2 - smileyRect.h/2;
-
-                mineCounterRect.frame.w = 40 * 3;
-                mineCounterRect.frame.h = 60;
-                mineCounterRect.frame.x = (smileyRect.x + frame.x)/2 - mineCounterRect.frame.w/2;
-                mineCounterRect.frame.y = frame.y - frame.y/2 - mineCounterRect.frame.h/2;
-
-                mineCounterRect.slot1 = mineCounterRect.frame;
-                mineCounterRect.slot1.w = 40;
-                mineCounterRect.slot2 = mineCounterRect.slot1;
-                mineCounterRect.slot2.x += mineCounterRect.slot1.w;
-                mineCounterRect.slot3 = mineCounterRect.slot2;
-                mineCounterRect.slot3.x += mineCounterRect.slot2.w;
-
-                timerRect.frame = mineCounterRect.frame;
-                timerRect.frame.x = smileyRect.x + smileyRect.w + (smileyRect.x - (mineCounterRect.frame.x + mineCounterRect.frame.w));
-                timerRect.slot1 = timerRect.frame;
-                timerRect.slot1.w = 40;
-                timerRect.slot2 = timerRect.slot1;
-                timerRect.slot2.x += timerRect.slot1.w;
-                timerRect.slot3 = timerRect.slot2;
-                timerRect.slot3.x += timerRect.slot2.w;
-            }
-            for(int i = 0; i < gameWidth; i++){
-                for(int j = 0; j < gameHeight; j++){
-                    block[i][j].quadrant.w = blocksize;
-                    block[i][j].quadrant.h = blocksize;
-                    block[i][j].quadrant.x = frame.x + block[i][j].quadrant.w * i;
-                    block[i][j].quadrant.y = frame.y + block[i][j].quadrant.h * j;
-                }
-            }       
-
-            lastWIDTH = WIDTH;
-            lastHEIGHT = HEIGHT;
-            lastGameWidth = gameWidth;
-            lastGameHeight = gameHeight;
-        }
+        bool leftdown = false;
+        bool rightdown = false;
+        int mousex, mousey;
         
-        if(SDL_IntersectRect(&mouseRect, &smileyRect, &intersection) && leftdown){
-            totalMines = init_block(block);
-            gameOver = false;
-            gameStarted = true;
-            gameWon = false;
-            gameStartTime = time(NULL);
-            totalFlags = 0;
-            smileyState.press = 10;
-            for(int i = 0; i < (gameWidth * gameHeight); i++){
-                mineTracker[i].x = 0;
-                mineTracker[i].y = 0;
-            }
-        }
+        int lastWIDTH = 0, lastHEIGHT = 0;
+        int lastGameWidth = 0, lastGameHeight = 0;
 
-        SDL_RenderClear(renderer);
+        bool firstRun = true;
+        bool gameStarted = false;
+        int difficulty = 1;
+        int mineCount = 0;
+        int totalMines = 0;
+        int totalFlags = 0;
+        float delay = 0;
+        minePos mineTracker[100 * 100];
+        int mineTrackerSize;
+        
+        int gameStartTime = 0;
+        int timePassed = 0;
 
-        if(gameStarted){
-            if(!gameOver){
-                timePassed = time(NULL) - gameStartTime;
-                if(timePassed > 998){
-                    gameOver = true;
+        SDL_Rect mouseRect;
+        mouseRect.w = 1;
+        mouseRect.h = 1;
+
+        SDL_Rect intersection;
+
+        SDL_Rect smileyRect;
+        smileyClicks smileyState;
+
+        mcDisp mineCounterRect;
+        tmrDisp timerRect;
+
+        SDL_Rect frame;
+        int blocksize;
+        blocks block[100][100];
+        
+        bool running = true;
+        while(running){
+            leftdown = false;
+            rightdown = false;
+
+            if(SDL_PollEvent(&event)){
+                if(event.type == SDL_QUIT){
+                    running = false;
+                    SDL_DestroyWindow(window);
                 }
-                for(int i = 0; i < gameWidth; i++)
-                {
-                    for(int j = 0; j < gameHeight; j++)
-                    {
-                        if(SDL_IntersectRect(&mouseRect, &block[i][j].quadrant, &intersection)){
-                            if(leftdown && !block[i][j].hasflag){
-                                block[i][j].isshown = true;
-                                if(block[i][j].hasmine){
-                                    gameOver = true;
-                                    mineCount = 0;
-                                    for(int a = 0; a < gameWidth; a++){
-                                        for(int b = 0; b < gameHeight; b++){
-                                            if(block[a][b].hasmine && !block[a][b].hasflag){
-                                                mineTracker[mineCount].x = a;
-                                                mineTracker[mineCount].y = b;
-                                                mineCount++;
-                                            }
-                                        }
-                                    }
-                                    printf("%d\n", mineCount);
-                                    mineTrackerSize = mineCount;
-                                }
-                                else{
-                                    reveal_area(block, i, j);
-                                    bool emptyCellsHidden = false;
-                                    for(int i = 0; i < gameWidth; i++){
-                                        for(int j = 0; j < gameHeight; j++){
-                                            if(!block[i][j].hasmine && !block[i][j].isshown){
-                                                emptyCellsHidden = true;
-                                            }
-                                        }
-                                    }
-                                    if(!emptyCellsHidden){
-                                        gameWon = true;
-                                        gameStarted = false;
-                                        totalFlags = totalMines;
-                                    }
-                                    else{
-                                        smileyState.click = 5;
-                                    }                          
-                                }
-                            }
-                            if(rightdown && !block[i][j].isshown){
-                                if(block[i][j].hasflag){
-                                    block[i][j].hasflag = false;
-                                    totalFlags--;
-                                }
-                                else{
-                                    block[i][j].hasflag = true;
-                                    totalFlags++;
-                                }
-                            }
-                        }
+                if(event.type == SDL_MOUSEBUTTONDOWN){
+                    if(event.button.button == SDL_BUTTON_LEFT){
+                        leftdown = true;
+                    }
+                    else if(event.button.button == SDL_BUTTON_RIGHT){
+                        rightdown = true;
                     }
                 }
-                bool emptyCellsHidden = false;
+                if(event.type == SDL_MOUSEMOTION){
+                    SDL_GetMouseState(&mousex, &mousey);
+                    mouseRect.x = mousex;
+                    mouseRect.y = mousey;
+                }
+                if(event.type == SDL_KEYDOWN){
+
+                }
+            }
+
+            SDL_GetWindowSize(window, &WIDTH, &HEIGHT);
+            if(WIDTH != lastWIDTH || HEIGHT != lastHEIGHT || gameWidth != lastGameWidth || gameHeight != lastGameHeight)
+            {
+                blocksize = (400 - 34)/gameWidth;
+                if(difficulty == 1){
+                    frame.w = blocksize * gameWidth;
+                    frame.h = blocksize * gameHeight;
+                    frame.x = WIDTH/2 - frame.w/2;
+                    frame.y = HEIGHT - frame.h - frame.x;
+
+                    smileyRect.w = 7*(frame.y - frame.x * 2)/8;
+                    smileyRect.h = 7*(frame.y - frame.x * 2)/8;
+                    smileyRect.x = WIDTH/2 - smileyRect.w/2;
+                    smileyRect.y = frame.y - frame.y/2 - smileyRect.h/2;
+
+                    mineCounterRect.frame.w = 40 * 3;
+                    mineCounterRect.frame.h = 60;
+                    mineCounterRect.frame.x = (smileyRect.x + frame.x)/2 - mineCounterRect.frame.w/2;
+                    mineCounterRect.frame.y = frame.y - frame.y/2 - mineCounterRect.frame.h/2;
+
+                    mineCounterRect.slot1 = mineCounterRect.frame;
+                    mineCounterRect.slot1.w = 40;
+                    mineCounterRect.slot2 = mineCounterRect.slot1;
+                    mineCounterRect.slot2.x += mineCounterRect.slot1.w;
+                    mineCounterRect.slot3 = mineCounterRect.slot2;
+                    mineCounterRect.slot3.x += mineCounterRect.slot2.w;
+
+                    timerRect.frame = mineCounterRect.frame;
+                    timerRect.frame.x = smileyRect.x + smileyRect.w + (smileyRect.x - (mineCounterRect.frame.x + mineCounterRect.frame.w));
+                    timerRect.slot1 = timerRect.frame;
+                    timerRect.slot1.w = 40;
+                    timerRect.slot2 = timerRect.slot1;
+                    timerRect.slot2.x += timerRect.slot1.w;
+                    timerRect.slot3 = timerRect.slot2;
+                    timerRect.slot3.x += timerRect.slot2.w;
+                }
                 for(int i = 0; i < gameWidth; i++){
                     for(int j = 0; j < gameHeight; j++){
-                        if(!block[i][j].hasmine && !block[i][j].isshown){
-                            emptyCellsHidden = true;
+                        block[i][j].quadrant.w = blocksize;
+                        block[i][j].quadrant.h = blocksize;
+                        block[i][j].quadrant.x = frame.x + block[i][j].quadrant.w * i;
+                        block[i][j].quadrant.y = frame.y + block[i][j].quadrant.h * j;
+                    }
+                }       
+
+                lastWIDTH = WIDTH;
+                lastHEIGHT = HEIGHT;
+                lastGameWidth = gameWidth;
+                lastGameHeight = gameHeight;
+            }
+            
+            if(SDL_IntersectRect(&mouseRect, &smileyRect, &intersection) && leftdown){
+                totalMines = init_block(block);
+                gameOver = false;
+                gameStarted = true;
+                gameWon = false;
+                gameStartTime = time(NULL);
+                totalFlags = 0;
+                smileyState.press = 10;
+                for(int i = 0; i < (gameWidth * gameHeight); i++){
+                    mineTracker[i].x = 0;
+                    mineTracker[i].y = 0;
+                }
+            }
+
+            SDL_RenderClear(renderer);
+
+            if(gameStarted){
+                if(!gameOver){
+                    timePassed = time(NULL) - gameStartTime;
+                    if(timePassed > 998){
+                        gameOver = true;
+                    }
+                    for(int i = 0; i < gameWidth; i++)
+                    {
+                        for(int j = 0; j < gameHeight; j++)
+                        {
+                            if(SDL_IntersectRect(&mouseRect, &block[i][j].quadrant, &intersection)){
+                                if(leftdown && !block[i][j].hasflag){
+                                    block[i][j].isshown = true;
+                                    if(block[i][j].hasmine){
+                                        gameOver = true;
+                                        mineCount = 0;
+                                        for(int a = 0; a < gameWidth; a++){
+                                            for(int b = 0; b < gameHeight; b++){
+                                                if(block[a][b].hasmine && !block[a][b].hasflag){
+                                                    mineTracker[mineCount].x = a;
+                                                    mineTracker[mineCount].y = b;
+                                                    mineCount++;
+                                                }
+                                            }
+                                        }
+                                        printf("%d\n", mineCount);
+                                        mineTrackerSize = mineCount;
+                                    }
+                                    else{
+                                        reveal_area(block, i, j);
+                                        bool emptyCellsHidden = false;
+                                        for(int i = 0; i < gameWidth; i++){
+                                            for(int j = 0; j < gameHeight; j++){
+                                                if(!block[i][j].hasmine && !block[i][j].isshown){
+                                                    emptyCellsHidden = true;
+                                                }
+                                            }
+                                        }
+                                        if(!emptyCellsHidden){
+                                            gameWon = true;
+                                            gameStarted = false;
+                                            totalFlags = totalMines;
+                                        }
+                                        else{
+                                            smileyState.click = 5;
+                                        }                          
+                                    }
+                                }
+                                if(rightdown && !block[i][j].isshown){
+                                    if(block[i][j].hasflag){
+                                        block[i][j].hasflag = false;
+                                        totalFlags--;
+                                    }
+                                    else{
+                                        block[i][j].hasflag = true;
+                                        totalFlags++;
+                                    }
+                                }
+                            }
                         }
                     }
-                }
-                if(!emptyCellsHidden){
-                    gameWon = true;
-                    gameStarted = false;
-                    totalFlags = totalMines;
-                }
-            }
-            else{
-                if(delay <= 0){
-                    int num = 5;
-                    if(mineCount > 0)
-                    {
-                        srand(time(NULL) * SDL_GetTicks64());
-                        while(mineTracker[num].x == -1 && mineTracker[num].y == -1){
-                            num = rand() % (mineTrackerSize);
+                    bool emptyCellsHidden = false;
+                    for(int i = 0; i < gameWidth; i++){
+                        for(int j = 0; j < gameHeight; j++){
+                            if(!block[i][j].hasmine && !block[i][j].isshown){
+                                emptyCellsHidden = true;
+                            }
                         }
-                        block[mineTracker[num].x][mineTracker[num].y].isshown = true;
-                        mineTracker[num].x = -1;
-                        mineTracker[num].y = -1;   
-                        if(mineCount > mineTrackerSize - 2){
-                            delay = rand() % 42;
-                        }
-                        else if(mineCount > mineTrackerSize/2){
-                            delay = rand() % 12;
-                        }
-                        else{
-                            delay = rand() % 3;
-                        }
-                        mineCount--;
-                    }     
+                    }
+                    if(!emptyCellsHidden){
+                        gameWon = true;
+                        gameStarted = false;
+                        totalFlags = totalMines;
+                    }
                 }
                 else{
-                    delay--;
+                    if(delay <= 0){
+                        int num = 5;
+                        if(mineCount > 0)
+                        {
+                            srand(time(NULL) * SDL_GetTicks64());
+                            while(mineTracker[num].x == -1 && mineTracker[num].y == -1){
+                                num = rand() % (mineTrackerSize);
+                            }
+                            block[mineTracker[num].x][mineTracker[num].y].isshown = true;
+                            mineTracker[num].x = -1;
+                            mineTracker[num].y = -1;   
+                            if(mineCount > mineTrackerSize - 2){
+                                delay = rand() % 42;
+                            }
+                            else if(mineCount > mineTrackerSize/2){
+                                delay = rand() % 12;
+                            }
+                            else{
+                                delay = rand() % 3;
+                            }
+                            mineCount--;
+                        }     
+                    }
+                    else{
+                        delay--;
+                    }
                 }
             }
-        }
 
-        SDL_RenderCopy(renderer, textures.frame_easy, NULL, NULL);
-        
-        if(smileyState.press > 0){
-            SDL_RenderCopy(renderer, textures.smiley.pressed, NULL, &smileyRect);
-            smileyState.press--;
-        }
-        else if(smileyState.click > 0){
-            SDL_RenderCopy(renderer, textures.smiley.click, NULL, &smileyRect);
-            smileyState.click--;
-        }
-        else{
-            if(gameWon){
-                SDL_RenderCopy(renderer, textures.smiley.win, NULL, &smileyRect);
+            SDL_RenderCopy(renderer, textures.frame_easy, NULL, NULL);
+            
+            if(smileyState.press > 0){
+                SDL_RenderCopy(renderer, textures.smiley.pressed, NULL, &smileyRect);
+                smileyState.press--;
             }
-            else if(gameOver){
-                SDL_RenderCopy(renderer, textures.smiley.loss, NULL, &smileyRect);
+            else if(smileyState.click > 0){
+                SDL_RenderCopy(renderer, textures.smiley.click, NULL, &smileyRect);
+                smileyState.click--;
             }
             else{
-                SDL_RenderCopy(renderer, textures.smiley.neutral, NULL, &smileyRect);
-            }  
-        }
-
-        show_time(renderer, &textures, &mineCounterRect, totalMines - totalFlags);
-        show_time(renderer, &textures, &timerRect, timePassed);
-        show_grid(block, &textures, renderer);
-
-        if(firstRun){
-            totalMines = init_block(block);
-            gameOver = false;
-            gameStarted = true;
-            gameWon = false;
-            gameStartTime = time(NULL);
-            totalFlags = 0;
-            for(int i = 0; i < (gameWidth * gameHeight); i++){
-                mineTracker[i].x = 0;
-                mineTracker[i].y = 0;
+                if(gameWon){
+                    SDL_RenderCopy(renderer, textures.smiley.win, NULL, &smileyRect);
+                }
+                else if(gameOver){
+                    SDL_RenderCopy(renderer, textures.smiley.loss, NULL, &smileyRect);
+                }
+                else{
+                    SDL_RenderCopy(renderer, textures.smiley.neutral, NULL, &smileyRect);
+                }  
             }
-            firstRun = false;
-        }
-    }
 
-    return 0;
-}
+            show_time(renderer, &textures, &mineCounterRect, totalMines - totalFlags);
+            show_time(renderer, &textures, &timerRect, timePassed);
+            show_grid(block, &textures, renderer);
+
+            if(firstRun){
+                totalMines = init_block(block);
+                gameOver = false;
+                gameStarted = true;
+                gameWon = false;
+                gameStartTime = time(NULL);
+                totalFlags = 0;
+                for(int i = 0; i < (gameWidth * gameHeight); i++){
+                    mineTracker[i].x = 0;
+                    mineTracker[i].y = 0;
+                }
+                firstRun = false;
+            }
+        }
+        
+        SDL_Quit();
+        return 0;
+    }
