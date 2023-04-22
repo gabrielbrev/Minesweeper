@@ -35,7 +35,25 @@ struct grid_textures{
 
     SDL_Texture *smiley_neutral;
 };
-typedef grid_textures gameTxtr;
+
+struct counter_textures{
+    SDL_Texture *zero;
+    SDL_Texture *one;
+    SDL_Texture *two;
+    SDL_Texture *three;
+    SDL_Texture *four;
+    SDL_Texture *five;
+    SDL_Texture *six;
+    SDL_Texture *seven;
+    SDL_Texture *eight;
+    SDL_Texture *nine;
+};
+struct all_textures{
+    SDL_Texture *frame_easy;
+    SDL_Texture *smiley_neutral;
+    struct grid_textures grid;
+};
+typedef all_textures gameTxtr;
 
 struct mine_position{
     int x;
@@ -43,46 +61,64 @@ struct mine_position{
 };
 typedef struct mine_position minePos;
 
+struct mine_counter_display{
+    SDL_Rect frame;
+    SDL_Rect slot1;
+    SDL_Rect slot2;
+    SDL_Rect slot3;
+};
+typedef mine_counter_display mcDisp;
+
+struct timer_display{
+    SDL_Rect frame;
+    SDL_Rect slot1;
+    SDL_Rect slot2;
+    SDL_Rect slot3;
+};
+typedef timer_display tmrDisp;
+
+
+
 void init_textures(gameTxtr *textures, SDL_Renderer *renderer){
-    SDL_Surface *surface = SDL_LoadBMP("./textures/one.bmp");
-    textures->one = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_Surface *surface = SDL_LoadBMP("./textures/grid/one.bmp");
+    textures->grid.one = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/two.bmp");
-    textures->two = SDL_CreateTextureFromSurface(renderer, surface);
+    surface = SDL_LoadBMP("./textures/grid/two.bmp");
+    textures->grid.two = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/three.bmp");
-    textures->three = SDL_CreateTextureFromSurface(renderer, surface);
+    surface = SDL_LoadBMP("./textures/grid/three.bmp");
+    textures->grid.three = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/four.bmp");
-    textures->four = SDL_CreateTextureFromSurface(renderer, surface);
+    surface = SDL_LoadBMP("./textures/grid/four.bmp");
+    textures->grid.four = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/five.bmp");
-    textures->five = SDL_CreateTextureFromSurface(renderer, surface);
+    surface = SDL_LoadBMP("./textures/grid/five.bmp");
+    textures->grid.five = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/six.bmp");
-    textures->six = SDL_CreateTextureFromSurface(renderer, surface);
+    surface = SDL_LoadBMP("./textures/grid/six.bmp");
+    textures->grid.six = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/seven.bmp");
-    textures->seven = SDL_CreateTextureFromSurface(renderer, surface);
+    surface = SDL_LoadBMP("./textures/grid/seven.bmp");
+    textures->grid.seven = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/eight.bmp");
-    textures->eight = SDL_CreateTextureFromSurface(renderer, surface);
+    surface = SDL_LoadBMP("./textures/grid/eight.bmp");
+    textures->grid.eight = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
 
-    surface = SDL_LoadBMP("./textures/empty.bmp");
-    textures->empty = SDL_CreateTextureFromSurface(renderer, surface);
+    surface = SDL_LoadBMP("./textures/grid/empty.bmp");
+    textures->grid.empty = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/flag.bmp");
-    textures->flag = SDL_CreateTextureFromSurface(renderer, surface);
+    surface = SDL_LoadBMP("./textures/grid/flag.bmp");
+    textures->grid.flag = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/block.bmp");
-    textures->block = SDL_CreateTextureFromSurface(renderer, surface);
+    surface = SDL_LoadBMP("./textures/grid/block.bmp");
+    textures->grid.block = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/bomb.bmp");
-    textures->mine = SDL_CreateTextureFromSurface(renderer, surface);
+    surface = SDL_LoadBMP("./textures/grid/bomb.bmp");
+    textures->grid.mine = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/blown_bomb.bmp");
-    textures->blown_mine = SDL_CreateTextureFromSurface(renderer, surface);
+    surface = SDL_LoadBMP("./textures/grid/blown_bomb.bmp");
+    textures->grid.blown_mine = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
 
     surface = SDL_LoadBMP("./textures/frame_easy.bmp");
@@ -156,42 +192,42 @@ void show_grid(blocks square[][100], gameTxtr *txtr, SDL_Renderer *renderer){
         for(int j = 0; j < gameHeight; j++){
             if(square[i][j].isshown){
                 if(square[i][j].hasmine){
-                    SDL_RenderCopy(renderer, txtr->blown_mine, NULL, &square[i][j].quadrant);
+                    SDL_RenderCopy(renderer, txtr->grid.blown_mine, NULL, &square[i][j].quadrant);
                     if(square[i][j].hasflag){
-                        SDL_RenderCopy(renderer, txtr->mine, NULL, &square[i][j].quadrant);
+                        SDL_RenderCopy(renderer, txtr->grid.mine, NULL, &square[i][j].quadrant);
                     }
                 }
                 if(!square[i][j].hasmine){
                     if(square[i][j].minesnear > 0){
                         switch(square[i][j].minesnear){
-                            case 1: SDL_RenderCopy(renderer, txtr->one, NULL, &square[i][j].quadrant);
+                            case 1: SDL_RenderCopy(renderer, txtr->grid.one, NULL, &square[i][j].quadrant);
                                     break;
-                            case 2: SDL_RenderCopy(renderer, txtr->two, NULL, &square[i][j].quadrant);
+                            case 2: SDL_RenderCopy(renderer, txtr->grid.two, NULL, &square[i][j].quadrant);
                                     break;
-                            case 3: SDL_RenderCopy(renderer, txtr->three, NULL, &square[i][j].quadrant);
+                            case 3: SDL_RenderCopy(renderer, txtr->grid.three, NULL, &square[i][j].quadrant);
                                     break;
-                            case 4: SDL_RenderCopy(renderer, txtr->four, NULL, &square[i][j].quadrant);
+                            case 4: SDL_RenderCopy(renderer, txtr->grid.four, NULL, &square[i][j].quadrant);
                                     break;
-                            case 5: SDL_RenderCopy(renderer, txtr->five, NULL, &square[i][j].quadrant);
+                            case 5: SDL_RenderCopy(renderer, txtr->grid.five, NULL, &square[i][j].quadrant);
                                     break;
-                            case 6: SDL_RenderCopy(renderer, txtr->six, NULL, &square[i][j].quadrant);
+                            case 6: SDL_RenderCopy(renderer, txtr->grid.six, NULL, &square[i][j].quadrant);
                                     break;
-                            case 7: SDL_RenderCopy(renderer, txtr->seven, NULL, &square[i][j].quadrant);
+                            case 7: SDL_RenderCopy(renderer, txtr->grid.seven, NULL, &square[i][j].quadrant);
                                     break;
-                            case 8: SDL_RenderCopy(renderer, txtr->eight, NULL, &square[i][j].quadrant);
+                            case 8: SDL_RenderCopy(renderer, txtr->grid.eight, NULL, &square[i][j].quadrant);
                                     break;
                         }
                     }
                     else{
-                        SDL_RenderCopy(renderer, txtr->empty, NULL, &square[i][j].quadrant);
+                        SDL_RenderCopy(renderer, txtr->grid.empty, NULL, &square[i][j].quadrant);
                     }
                 }          
             }
 
             else{
-                SDL_RenderCopy(renderer, txtr->block, NULL, &square[i][j].quadrant);
+                SDL_RenderCopy(renderer, txtr->grid.block, NULL, &square[i][j].quadrant);
                 if(square[i][j].hasflag){
-                    SDL_RenderCopy(renderer, txtr->flag, NULL, &square[i][j].quadrant);
+                    SDL_RenderCopy(renderer, txtr->grid.flag, NULL, &square[i][j].quadrant);
                 }
             }   
         }
@@ -232,6 +268,10 @@ int main(int agrc, char *argv[]){
     mouseRect.h = 1;
     SDL_Rect intersection;
     SDL_Rect smileyRect;
+
+    mcDisp mineCounterRect;
+    tmrDisp timerRect;
+
     SDL_Rect frame;
     int blocksize;
     blocks block[100][100];
@@ -268,10 +308,10 @@ int main(int agrc, char *argv[]){
         }
 
         SDL_GetWindowSize(window, &WIDTH, &HEIGHT);
-        if(WIDTH != lastWIDTH || HEIGHT != lastHEIGHT || gameWidth != lastGameWidth || gameHeight != lastGameHeight){
+        if(WIDTH != lastWIDTH || HEIGHT != lastHEIGHT || gameWidth != lastGameWidth || gameHeight != lastGameHeight)
+        {
+            blocksize = (400 - 34)/gameWidth;
             if(difficulty == 1){
-                blocksize = (WIDTH - 34)/gameWidth;
-  
                 frame.w = blocksize * gameWidth;
                 frame.h = blocksize * gameHeight;
                 frame.x = WIDTH/2 - frame.w/2;
@@ -281,6 +321,30 @@ int main(int agrc, char *argv[]){
                 smileyRect.h = 7*(frame.y - frame.x * 2)/8;
                 smileyRect.x = WIDTH/2 - smileyRect.w/2;
                 smileyRect.y = frame.y - frame.y/2 - smileyRect.h/2;
+
+                mineCounterRect.frame.w = 40 * 3;
+                mineCounterRect.frame.h = 60;
+                mineCounterRect.frame.x = (smileyRect.x + frame.x)/2 - mineCounterRect.frame.w/2;
+                mineCounterRect.frame.y = frame.y - frame.y/2 - mineCounterRect.frame.h/2;
+
+                mineCounterRect.slot1 = mineCounterRect.frame;
+                mineCounterRect.slot1.w = 40;
+                mineCounterRect.slot2 = mineCounterRect.slot1;
+                mineCounterRect.slot2.x += mineCounterRect.slot1.w;
+                mineCounterRect.slot3 = mineCounterRect.slot2;
+                mineCounterRect.slot3.x += mineCounterRect.slot2.w;
+
+                timerRect.frame = mineCounterRect.frame;
+                timerRect.frame.x = smileyRect.x + smileyRect.w + (smileyRect.x - (mineCounterRect.frame.x + mineCounterRect.frame.w));
+                timerRect.slot1 = timerRect.frame;
+                timerRect.slot1.w = 40;
+                timerRect.slot2 = timerRect.slot1;
+                timerRect.slot2.x += timerRect.slot1.w;
+                timerRect.slot3 = timerRect.slot2;
+                timerRect.slot3.x += timerRect.slot2.w;
+
+
+
             }
             for(int i = 0; i < gameWidth; i++){
                 for(int j = 0; j < gameHeight; j++){
@@ -374,7 +438,20 @@ int main(int agrc, char *argv[]){
         }
         SDL_RenderCopy(renderer, textures.frame_easy, NULL, NULL);
         SDL_RenderCopy(renderer, textures.smiley_neutral, NULL, &smileyRect);
-        show_grid(block, &textures, renderer); 
+
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+        SDL_RenderDrawRect(renderer, &mineCounterRect.frame);
+        SDL_RenderDrawRect(renderer, &mineCounterRect.slot1);
+        SDL_RenderDrawRect(renderer, &mineCounterRect.slot2);
+        SDL_RenderDrawRect(renderer, &mineCounterRect.slot3);
+        
+        SDL_RenderDrawRect(renderer, &timerRect.frame);
+        SDL_RenderDrawRect(renderer, &timerRect.slot1);
+        SDL_RenderDrawRect(renderer, &timerRect.slot2);
+        SDL_RenderDrawRect(renderer, &timerRect.slot3);
+
+        show_grid(block, &textures, renderer);
     }
 
     return 0;
