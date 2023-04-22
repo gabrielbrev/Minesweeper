@@ -290,7 +290,7 @@ void show_grid(blocks square[][100], gameTxtr *txtr, SDL_Renderer *renderer){
             else{
                 SDL_RenderCopy(renderer, txtr->grid.block, NULL, &square[i][j].quadrant);
                 if(square[i][j].hasflag){
-                    if((gameWon || gameOver) && !square[i][j].hasmine){
+                    if(gameOver && !square[i][j].hasmine){
                         SDL_RenderCopy(renderer, txtr->grid.broken_flag, NULL, &square[i][j].quadrant);
                     }
                     else{
@@ -685,11 +685,27 @@ int main(int agrc, char *argv[]){
                                             }
                                         }
                                     }
+                                    printf("%d\n", mineCount);
                                     mineTrackerSize = mineCount;
                                 }
                                 else{
                                     reveal_area(block, i, j);
-                                    smileyState.click = 5;
+                                    bool emptyCellsHidden = false;
+                                    for(int i = 0; i < gameWidth; i++){
+                                        for(int j = 0; j < gameHeight; j++){
+                                            if(!block[i][j].hasmine && !block[i][j].isshown){
+                                                emptyCellsHidden = true;
+                                            }
+                                        }
+                                    }
+                                    if(!emptyCellsHidden){
+                                        gameWon = true;
+                                        gameStarted = false;
+                                        totalFlags = totalMines;
+                                    }
+                                    else{
+                                        smileyState.click = 5;
+                                    }                          
                                 }
                             }
                             if(rightdown && !block[i][j].isshown){
@@ -705,15 +721,15 @@ int main(int agrc, char *argv[]){
                         }
                     }
                 }
-                bool emptyCellHidden = false;
+                bool emptyCellsHidden = false;
                 for(int i = 0; i < gameWidth; i++){
                     for(int j = 0; j < gameHeight; j++){
                         if(!block[i][j].hasmine && !block[i][j].isshown){
-                            emptyCellHidden = true;
+                            emptyCellsHidden = true;
                         }
                     }
                 }
-                if(!emptyCellHidden){
+                if(!emptyCellsHidden){
                     gameWon = true;
                     gameStarted = false;
                     totalFlags = totalMines;
