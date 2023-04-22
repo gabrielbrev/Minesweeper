@@ -5,6 +5,8 @@
 
 int WIDTH = 400, HEIGHT = 500;
 int gameWidth = 9, gameHeight = 9;
+bool gameWon = false;
+bool gameOver = false;
 
 struct mine_sites{
     SDL_Rect quadrant;
@@ -28,6 +30,7 @@ struct grid_textures{
     SDL_Texture *empty;
     SDL_Texture *block;
     SDL_Texture *flag;
+    SDL_Texture *broken_flag;
     SDL_Texture *mine;
     SDL_Texture *blown_mine;
 
@@ -86,7 +89,11 @@ struct timer_display{
 };
 typedef timer_display tmrDisp;
 
-
+struct smiley_clicks{
+    int press = 0;
+    int click = 0;
+};
+typedef struct smiley_clicks smileyClicks;
 
 void init_textures(gameTxtr *textures, SDL_Renderer *renderer){
     SDL_Surface *surface = SDL_LoadBMP("./textures/grid/one.bmp");
@@ -119,6 +126,9 @@ void init_textures(gameTxtr *textures, SDL_Renderer *renderer){
     SDL_FreeSurface(surface);
     surface = SDL_LoadBMP("./textures/grid/flag.bmp");
     textures->grid.flag = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/grid/broken_flag.bmp");
+    textures->grid.broken_flag = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
     surface = SDL_LoadBMP("./textures/grid/block.bmp");
     textures->grid.block = SDL_CreateTextureFromSurface(renderer, surface);
@@ -161,18 +171,24 @@ void init_textures(gameTxtr *textures, SDL_Renderer *renderer){
     textures->counter.nine = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
 
-    surface = SDL_LoadBMP("./textures/frame_easy.bmp");
+    surface = SDL_LoadBMP("./textures/frame/easy.bmp");
     textures->frame_easy = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
 
-    surface = SDL_LoadBMP("./textures/mood_neutral.bmp");
+    surface = SDL_LoadBMP("./textures/smiley/neutral.bmp");
     textures->smiley.neutral = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/smiley_pressed.bmp");
+    surface = SDL_LoadBMP("./textures/smiley/press.bmp");
     textures->smiley.pressed = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
-    surface = SDL_LoadBMP("./textures/mood_happy.bmp");
+    surface = SDL_LoadBMP("./textures/smiley/win.bmp");
     textures->smiley.win = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/smiley/loss.bmp");
+    textures->smiley.loss = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/smiley/click.bmp");
+    textures->smiley.click = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
 }
 
@@ -274,7 +290,12 @@ void show_grid(blocks square[][100], gameTxtr *txtr, SDL_Renderer *renderer){
             else{
                 SDL_RenderCopy(renderer, txtr->grid.block, NULL, &square[i][j].quadrant);
                 if(square[i][j].hasflag){
-                    SDL_RenderCopy(renderer, txtr->grid.flag, NULL, &square[i][j].quadrant);
+                    if((gameWon || gameOver) && !square[i][j].hasmine){
+                        SDL_RenderCopy(renderer, txtr->grid.broken_flag, NULL, &square[i][j].quadrant);
+                    }
+                    else{
+                        SDL_RenderCopy(renderer, txtr->grid.flag, NULL, &square[i][j].quadrant);
+                    }
                 }
             }   
         }
@@ -493,10 +514,6 @@ void show_time(SDL_Renderer *renderer, gameTxtr *textures, mcDisp *mineCounter, 
     }
 }
 
-void show_mines_left(blocks square[][100]){
-
-}
-
 int main(int agrc, char *argv[]){
 
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -514,16 +531,13 @@ int main(int agrc, char *argv[]){
 
     bool leftdown = false;
     bool rightdown = false;
-    bool r_down = false;
     int mousex, mousey;
     
     int lastWIDTH = 0, lastHEIGHT = 0;
     int lastGameWidth = 0, lastGameHeight = 0;
 
-    bool gameOver = false;
-    bool gameWon = false;
+    bool firstRun = true;
     bool gameStarted = false;
-    int smileyMood = 0;
     int difficulty = 1;
     int mineCount = 0;
     int totalMines = 0;
@@ -538,9 +552,11 @@ int main(int agrc, char *argv[]){
     SDL_Rect mouseRect;
     mouseRect.w = 1;
     mouseRect.h = 1;
+
     SDL_Rect intersection;
+
     SDL_Rect smileyRect;
-    int smileyPressed = 0;
+    smileyClicks smileyState;
 
     mcDisp mineCounterRect;
     tmrDisp timerRect;
@@ -553,7 +569,6 @@ int main(int agrc, char *argv[]){
     while(running){
         leftdown = false;
         rightdown = false;
-        r_down = false;
 
         if(SDL_PollEvent(&event)){
             if(event.type == SDL_QUIT){
@@ -574,9 +589,7 @@ int main(int agrc, char *argv[]){
                 mouseRect.y = mousey;
             }
             if(event.type == SDL_KEYDOWN){
-                if(event.key.keysym.sym == SDLK_r){
-                    r_down = true;
-                }
+
             }
         }
 
@@ -638,12 +651,11 @@ int main(int agrc, char *argv[]){
             gameWon = false;
             gameStartTime = time(NULL);
             totalFlags = 0;
-            smileyPressed = 10;
+            smileyState.press = 10;
             for(int i = 0; i < (gameWidth * gameHeight); i++){
                 mineTracker[i].x = 0;
                 mineTracker[i].y = 0;
             }
-            //SDL_SetWindowSize(window, 400, 500);
         }
 
         SDL_RenderClear(renderer);
@@ -651,7 +663,7 @@ int main(int agrc, char *argv[]){
         if(gameStarted){
             if(!gameOver){
                 timePassed = time(NULL) - gameStartTime;
-                if(timePassed > 999){
+                if(timePassed > 998){
                     gameOver = true;
                 }
                 for(int i = 0; i < gameWidth; i++)
@@ -662,24 +674,22 @@ int main(int agrc, char *argv[]){
                             if(leftdown && !block[i][j].hasflag){
                                 block[i][j].isshown = true;
                                 if(block[i][j].hasmine){
-                                    block[i][j].isshown = true;
                                     gameOver = true;
                                     mineCount = 0;
                                     for(int a = 0; a < gameWidth; a++){
                                         for(int b = 0; b < gameHeight; b++){
-                                            if(block[a][b].hasmine){
+                                            if(block[a][b].hasmine && !block[a][b].hasflag){
                                                 mineTracker[mineCount].x = a;
                                                 mineTracker[mineCount].y = b;
                                                 mineCount++;
                                             }
                                         }
                                     }
-                                    mineTrackerSize = totalMines;
-
-                                    
+                                    mineTrackerSize = mineCount;
                                 }
                                 else{
                                     reveal_area(block, i, j);
+                                    smileyState.click = 5;
                                 }
                             }
                             if(rightdown && !block[i][j].isshown){
@@ -707,7 +717,6 @@ int main(int agrc, char *argv[]){
                     gameWon = true;
                     gameStarted = false;
                     totalFlags = totalMines;
-                    printf("game won!\n");
                 }
             }
             else{
@@ -742,13 +751,20 @@ int main(int agrc, char *argv[]){
 
         SDL_RenderCopy(renderer, textures.frame_easy, NULL, NULL);
         
-        if(smileyPressed > 0){
+        if(smileyState.press > 0){
             SDL_RenderCopy(renderer, textures.smiley.pressed, NULL, &smileyRect);
-            smileyPressed--;
+            smileyState.press--;
+        }
+        else if(smileyState.click > 0){
+            SDL_RenderCopy(renderer, textures.smiley.click, NULL, &smileyRect);
+            smileyState.click--;
         }
         else{
             if(gameWon){
                 SDL_RenderCopy(renderer, textures.smiley.win, NULL, &smileyRect);
+            }
+            else if(gameOver){
+                SDL_RenderCopy(renderer, textures.smiley.loss, NULL, &smileyRect);
             }
             else{
                 SDL_RenderCopy(renderer, textures.smiley.neutral, NULL, &smileyRect);
@@ -758,6 +774,20 @@ int main(int agrc, char *argv[]){
         show_time(renderer, &textures, &mineCounterRect, totalMines - totalFlags);
         show_time(renderer, &textures, &timerRect, timePassed);
         show_grid(block, &textures, renderer);
+
+        if(firstRun){
+            totalMines = init_block(block);
+            gameOver = false;
+            gameStarted = true;
+            gameWon = false;
+            gameStartTime = time(NULL);
+            totalFlags = 0;
+            for(int i = 0; i < (gameWidth * gameHeight); i++){
+                mineTracker[i].x = 0;
+                mineTracker[i].y = 0;
+            }
+            firstRun = false;
+        }
     }
 
     return 0;
