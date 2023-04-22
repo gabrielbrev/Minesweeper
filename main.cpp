@@ -48,11 +48,19 @@ struct counter_textures{
     SDL_Texture *eight;
     SDL_Texture *nine;
 };
+
+struct smiley_textures{
+    SDL_Texture *neutral;
+    SDL_Texture *pressed;
+    SDL_Texture *click;
+    SDL_Texture *loss;
+    SDL_Texture *win;
+};
 struct all_textures{
     SDL_Texture *frame_easy;
-    SDL_Texture *smiley_neutral;
     struct grid_textures grid;
     struct counter_textures counter;
+    struct smiley_textures smiley;
 };
 typedef all_textures gameTxtr;
 
@@ -158,11 +166,17 @@ void init_textures(gameTxtr *textures, SDL_Renderer *renderer){
     SDL_FreeSurface(surface);
 
     surface = SDL_LoadBMP("./textures/mood_neutral.bmp");
-    textures->smiley_neutral = SDL_CreateTextureFromSurface(renderer, surface);
+    textures->smiley.neutral = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/smiley_pressed.bmp");
+    textures->smiley.pressed = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/mood_happy.bmp");
+    textures->smiley.win = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
 }
 
-void init_block(blocks square[][100]){
+int init_block(blocks square[][100]){
     for(int i = 0; i < gameWidth; i++){
         for(int j = 0; j < gameHeight; j++){
             square[i][j].hasmine = false;
@@ -200,6 +214,7 @@ void init_block(blocks square[][100]){
             square[i][j].minesnear = minesAround;
         }
     }
+    return totalmines;
 }
 
 void reveal_area(blocks square[][100], int i, int j){
@@ -371,6 +386,117 @@ void show_time(SDL_Renderer *renderer, gameTxtr *textures, tmrDisp *timer, int s
     }
 }
 
+void show_time(SDL_Renderer *renderer, gameTxtr *textures, mcDisp *mineCounter, int flags){
+    int unity, decimal, hundred;
+    if(flags < 0){
+        flags = 0;
+    }
+
+    hundred = flags / 100;
+    flags -= (hundred * 100);
+    decimal = flags / 10;
+    flags -= (decimal * 10);
+    unity = flags;
+
+    switch(unity){
+        case 0:
+        SDL_RenderCopy(renderer, textures->counter.zero, NULL, &(mineCounter->slot3));
+        break;
+        case 1:
+        SDL_RenderCopy(renderer, textures->counter.one, NULL, &(mineCounter->slot3));
+        break;
+        case 2:
+        SDL_RenderCopy(renderer, textures->counter.two, NULL, &(mineCounter->slot3));
+        break;
+        case 3:
+        SDL_RenderCopy(renderer, textures->counter.three, NULL, &(mineCounter->slot3));
+        break;
+        case 4:
+        SDL_RenderCopy(renderer, textures->counter.four, NULL, &(mineCounter->slot3));
+        break;
+        case 5:
+        SDL_RenderCopy(renderer, textures->counter.five, NULL, &(mineCounter->slot3));
+        break;
+        case 6:
+        SDL_RenderCopy(renderer, textures->counter.six, NULL, &(mineCounter->slot3));
+        break;
+        case 7:
+        SDL_RenderCopy(renderer, textures->counter.seven, NULL, &(mineCounter->slot3));
+        break;
+        case 8:
+        SDL_RenderCopy(renderer, textures->counter.eight, NULL, &(mineCounter->slot3));
+        break;
+        case 9:
+        SDL_RenderCopy(renderer, textures->counter.nine, NULL, &(mineCounter->slot3));
+    }
+    switch(decimal){
+        case 0:
+        SDL_RenderCopy(renderer, textures->counter.zero, NULL, &(mineCounter->slot2));
+        break;
+        case 1:
+        SDL_RenderCopy(renderer, textures->counter.one, NULL, &(mineCounter->slot2));
+        break;
+        case 2:
+        SDL_RenderCopy(renderer, textures->counter.two, NULL, &(mineCounter->slot2));
+        break;
+        case 3:
+        SDL_RenderCopy(renderer, textures->counter.three, NULL, &(mineCounter->slot2));
+        break;
+        case 4:
+        SDL_RenderCopy(renderer, textures->counter.four, NULL, &(mineCounter->slot2));
+        break;
+        case 5:
+        SDL_RenderCopy(renderer, textures->counter.five, NULL, &(mineCounter->slot2));
+        break;
+        case 6:
+        SDL_RenderCopy(renderer, textures->counter.six, NULL, &(mineCounter->slot2));
+        break;
+        case 7:
+        SDL_RenderCopy(renderer, textures->counter.seven, NULL, &(mineCounter->slot2));
+        break;
+        case 8:
+        SDL_RenderCopy(renderer, textures->counter.eight, NULL, &(mineCounter->slot2));
+        break;
+        case 9:
+        SDL_RenderCopy(renderer, textures->counter.nine, NULL, &(mineCounter->slot2));
+    }
+    switch(hundred){
+        case 0:
+        SDL_RenderCopy(renderer, textures->counter.zero, NULL, &(mineCounter->slot1));
+        break;
+        case 1:
+        SDL_RenderCopy(renderer, textures->counter.one, NULL, &(mineCounter->slot1));
+        break;
+        case 2:
+        SDL_RenderCopy(renderer, textures->counter.two, NULL, &(mineCounter->slot1));
+        break;
+        case 3:
+        SDL_RenderCopy(renderer, textures->counter.three, NULL, &(mineCounter->slot1));
+        break;
+        case 4:
+        SDL_RenderCopy(renderer, textures->counter.four, NULL, &(mineCounter->slot1));
+        break;
+        case 5:
+        SDL_RenderCopy(renderer, textures->counter.five, NULL, &(mineCounter->slot1));
+        break;
+        case 6:
+        SDL_RenderCopy(renderer, textures->counter.six, NULL, &(mineCounter->slot1));
+        break;
+        case 7:
+        SDL_RenderCopy(renderer, textures->counter.seven, NULL, &(mineCounter->slot1));
+        break;
+        case 8:
+        SDL_RenderCopy(renderer, textures->counter.eight, NULL, &(mineCounter->slot1));
+        break;
+        case 9:
+        SDL_RenderCopy(renderer, textures->counter.nine, NULL, &(mineCounter->slot1));
+    }
+}
+
+void show_mines_left(blocks square[][100]){
+
+}
+
 int main(int agrc, char *argv[]){
 
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -389,15 +515,20 @@ int main(int agrc, char *argv[]){
     bool leftdown = false;
     bool rightdown = false;
     bool r_down = false;
-    bool gameOver = false;
     int mousex, mousey;
-
+    
     int lastWIDTH = 0, lastHEIGHT = 0;
     int lastGameWidth = 0, lastGameHeight = 0;
 
+    bool gameOver = false;
+    bool gameWon = false;
+    bool gameStarted = false;
     int smileyMood = 0;
     int difficulty = 1;
-    int totalMines;
+    int mineCount = 0;
+    int totalMines = 0;
+    int totalFlags = 0;
+    float delay = 0;
     minePos mineTracker[100 * 100];
     int mineTrackerSize;
     
@@ -409,6 +540,7 @@ int main(int agrc, char *argv[]){
     mouseRect.h = 1;
     SDL_Rect intersection;
     SDL_Rect smileyRect;
+    int smileyPressed = 0;
 
     mcDisp mineCounterRect;
     tmrDisp timerRect;
@@ -499,102 +631,132 @@ int main(int agrc, char *argv[]){
             lastGameHeight = gameHeight;
         }
         
-        if(r_down){
-            init_block(block);
+        if(SDL_IntersectRect(&mouseRect, &smileyRect, &intersection) && leftdown){
+            totalMines = init_block(block);
             gameOver = false;
+            gameStarted = true;
+            gameWon = false;
             gameStartTime = time(NULL);
-            for(int a = 0; a < (gameWidth * gameHeight); a++){
-                mineTracker[a].x = 0;
-                mineTracker[a].y = 0;
+            totalFlags = 0;
+            smileyPressed = 10;
+            for(int i = 0; i < (gameWidth * gameHeight); i++){
+                mineTracker[i].x = 0;
+                mineTracker[i].y = 0;
             }
-            //SDL_SetWindowSize(window, frame.w, frame.h);
+            //SDL_SetWindowSize(window, 400, 500);
         }
 
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        if(!gameOver){
-            timePassed = time(NULL) - gameStartTime;
-            if(timePassed > 5){
-                gameOver = true;
-            }
-            for(int i = 0; i < gameWidth; i++)
-            {
-                for(int j = 0; j < gameHeight; j++)
+        if(gameStarted){
+            if(!gameOver){
+                timePassed = time(NULL) - gameStartTime;
+                if(timePassed > 999){
+                    gameOver = true;
+                }
+                for(int i = 0; i < gameWidth; i++)
                 {
-                    if(SDL_IntersectRect(&mouseRect, &block[i][j].quadrant, &intersection)){
-                        if(leftdown && !block[i][j].hasflag){
-                            block[i][j].isshown = true;
-                            if(block[i][j].hasmine){
+                    for(int j = 0; j < gameHeight; j++)
+                    {
+                        if(SDL_IntersectRect(&mouseRect, &block[i][j].quadrant, &intersection)){
+                            if(leftdown && !block[i][j].hasflag){
                                 block[i][j].isshown = true;
-                                totalMines = 0;
-                                gameOver = true;
-                                for(int a = 0; a < gameWidth; a++){
-                                    for(int b = 0; b < gameHeight; b++){
-                                        if(block[a][b].hasmine){
-                                            mineTracker[totalMines].x = a;
-                                            mineTracker[totalMines].y = b;
-                                            totalMines++;
+                                if(block[i][j].hasmine){
+                                    block[i][j].isshown = true;
+                                    gameOver = true;
+                                    mineCount = 0;
+                                    for(int a = 0; a < gameWidth; a++){
+                                        for(int b = 0; b < gameHeight; b++){
+                                            if(block[a][b].hasmine){
+                                                mineTracker[mineCount].x = a;
+                                                mineTracker[mineCount].y = b;
+                                                mineCount++;
+                                            }
                                         }
                                     }
+                                    mineTrackerSize = totalMines;
+
+                                    
                                 }
-                                mineTrackerSize = totalMines;
+                                else{
+                                    reveal_area(block, i, j);
+                                }
                             }
-                            else{
-                                reveal_area(block, i, j);
-                            }
-                        }
-                        if(rightdown && !block[i][j].isshown){
-                            if(block[i][j].hasflag){
-                                block[i][j].hasflag = false;
-                            }
-                            else{
-                                block[i][j].hasflag = true;
+                            if(rightdown && !block[i][j].isshown){
+                                if(block[i][j].hasflag){
+                                    block[i][j].hasflag = false;
+                                    totalFlags--;
+                                }
+                                else{
+                                    block[i][j].hasflag = true;
+                                    totalFlags++;
+                                }
                             }
                         }
                     }
                 }
-            }  
-        }
-        else{
-            int num = 5;
-            if(totalMines > 1)
-            {
-                srand(time(NULL) * SDL_GetTicks64());
-                while(mineTracker[num].x == 0 && mineTracker[num].y == 0){
-                    num = rand() % (mineTrackerSize);
+                bool emptyCellHidden = false;
+                for(int i = 0; i < gameWidth; i++){
+                    for(int j = 0; j < gameHeight; j++){
+                        if(!block[i][j].hasmine && !block[i][j].isshown){
+                            emptyCellHidden = true;
+                        }
+                    }
                 }
-                block[mineTracker[num].x][mineTracker[num].y].isshown = true;
-                mineTracker[num].x = 0;
-                mineTracker[num].y = 0;   
-                if(totalMines > mineTrackerSize - 2){
-                    SDL_Delay(rand() % 700);
+                if(!emptyCellHidden){
+                    gameWon = true;
+                    gameStarted = false;
+                    totalFlags = totalMines;
+                    printf("game won!\n");
                 }
-                else if(totalMines > mineTrackerSize/2){
-                    SDL_Delay(rand() % 200);
+            }
+            else{
+                if(delay <= 0){
+                    int num = 5;
+                    if(mineCount > 0)
+                    {
+                        srand(time(NULL) * SDL_GetTicks64());
+                        while(mineTracker[num].x == -1 && mineTracker[num].y == -1){
+                            num = rand() % (mineTrackerSize);
+                        }
+                        block[mineTracker[num].x][mineTracker[num].y].isshown = true;
+                        mineTracker[num].x = -1;
+                        mineTracker[num].y = -1;   
+                        if(mineCount > mineTrackerSize - 2){
+                            delay = rand() % 42;
+                        }
+                        else if(mineCount > mineTrackerSize/2){
+                            delay = rand() % 12;
+                        }
+                        else{
+                            delay = rand() % 3;
+                        }
+                        mineCount--;
+                    }     
                 }
                 else{
-                    SDL_Delay(rand() % 50);
+                    delay--;
                 }
-                totalMines--;
             }
         }
+
         SDL_RenderCopy(renderer, textures.frame_easy, NULL, NULL);
-        SDL_RenderCopy(renderer, textures.smiley_neutral, NULL, &smileyRect);
-
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-
-        SDL_RenderDrawRect(renderer, &mineCounterRect.frame);
-        SDL_RenderDrawRect(renderer, &mineCounterRect.slot1);
-        SDL_RenderDrawRect(renderer, &mineCounterRect.slot2);
-        SDL_RenderDrawRect(renderer, &mineCounterRect.slot3);
         
-        SDL_RenderDrawRect(renderer, &timerRect.frame);
-        SDL_RenderDrawRect(renderer, &timerRect.slot1);
-        SDL_RenderDrawRect(renderer, &timerRect.slot2);
-        SDL_RenderDrawRect(renderer, &timerRect.slot3);
-        show_time(renderer, &textures, &timerRect, timePassed);
+        if(smileyPressed > 0){
+            SDL_RenderCopy(renderer, textures.smiley.pressed, NULL, &smileyRect);
+            smileyPressed--;
+        }
+        else{
+            if(gameWon){
+                SDL_RenderCopy(renderer, textures.smiley.win, NULL, &smileyRect);
+            }
+            else{
+                SDL_RenderCopy(renderer, textures.smiley.neutral, NULL, &smileyRect);
+            }  
+        }
 
+        show_time(renderer, &textures, &mineCounterRect, totalMines - totalFlags);
+        show_time(renderer, &textures, &timerRect, timePassed);
         show_grid(block, &textures, renderer);
     }
 
