@@ -52,6 +52,7 @@ struct all_textures{
     SDL_Texture *frame_easy;
     SDL_Texture *smiley_neutral;
     struct grid_textures grid;
+    struct counter_textures counter;
 };
 typedef all_textures gameTxtr;
 
@@ -119,6 +120,37 @@ void init_textures(gameTxtr *textures, SDL_Renderer *renderer){
     SDL_FreeSurface(surface);
     surface = SDL_LoadBMP("./textures/grid/blown_bomb.bmp");
     textures->grid.blown_mine = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+
+    surface = SDL_LoadBMP("./textures/counter/zero.bmp");
+    textures->counter.zero = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/counter/one.bmp");
+    textures->counter.one = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/counter/two.bmp");
+    textures->counter.two = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/counter/three.bmp");
+    textures->counter.three = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/counter/four.bmp");
+    textures->counter.four = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/counter/five.bmp");
+    textures->counter.five = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/counter/six.bmp");
+    textures->counter.six = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/counter/seven.bmp");
+    textures->counter.seven = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/counter/eight.bmp");
+    textures->counter.eight = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/counter/nine.bmp");
+    textures->counter.nine = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
 
     surface = SDL_LoadBMP("./textures/frame_easy.bmp");
@@ -235,6 +267,110 @@ void show_grid(blocks square[][100], gameTxtr *txtr, SDL_Renderer *renderer){
     SDL_RenderPresent(renderer);
 }
 
+void show_time(SDL_Renderer *renderer, gameTxtr *textures, tmrDisp *timer, int secs){
+    int unity, decimal, hundred;
+
+    hundred = secs / 100;
+    secs -= (hundred * 100);
+    decimal = secs / 10;
+    secs -= (decimal * 10);
+    unity = secs;
+
+    switch(unity){
+        case 0:
+        SDL_RenderCopy(renderer, textures->counter.zero, NULL, &(timer->slot3));
+        break;
+        case 1:
+        SDL_RenderCopy(renderer, textures->counter.one, NULL, &(timer->slot3));
+        break;
+        case 2:
+        SDL_RenderCopy(renderer, textures->counter.two, NULL, &(timer->slot3));
+        break;
+        case 3:
+        SDL_RenderCopy(renderer, textures->counter.three, NULL, &(timer->slot3));
+        break;
+        case 4:
+        SDL_RenderCopy(renderer, textures->counter.four, NULL, &(timer->slot3));
+        break;
+        case 5:
+        SDL_RenderCopy(renderer, textures->counter.five, NULL, &(timer->slot3));
+        break;
+        case 6:
+        SDL_RenderCopy(renderer, textures->counter.six, NULL, &(timer->slot3));
+        break;
+        case 7:
+        SDL_RenderCopy(renderer, textures->counter.seven, NULL, &(timer->slot3));
+        break;
+        case 8:
+        SDL_RenderCopy(renderer, textures->counter.eight, NULL, &(timer->slot3));
+        break;
+        case 9:
+        SDL_RenderCopy(renderer, textures->counter.nine, NULL, &(timer->slot3));
+    }
+    switch(decimal){
+        case 0:
+        SDL_RenderCopy(renderer, textures->counter.zero, NULL, &(timer->slot2));
+        break;
+        case 1:
+        SDL_RenderCopy(renderer, textures->counter.one, NULL, &(timer->slot2));
+        break;
+        case 2:
+        SDL_RenderCopy(renderer, textures->counter.two, NULL, &(timer->slot2));
+        break;
+        case 3:
+        SDL_RenderCopy(renderer, textures->counter.three, NULL, &(timer->slot2));
+        break;
+        case 4:
+        SDL_RenderCopy(renderer, textures->counter.four, NULL, &(timer->slot2));
+        break;
+        case 5:
+        SDL_RenderCopy(renderer, textures->counter.five, NULL, &(timer->slot2));
+        break;
+        case 6:
+        SDL_RenderCopy(renderer, textures->counter.six, NULL, &(timer->slot2));
+        break;
+        case 7:
+        SDL_RenderCopy(renderer, textures->counter.seven, NULL, &(timer->slot2));
+        break;
+        case 8:
+        SDL_RenderCopy(renderer, textures->counter.eight, NULL, &(timer->slot2));
+        break;
+        case 9:
+        SDL_RenderCopy(renderer, textures->counter.nine, NULL, &(timer->slot2));
+    }
+    switch(hundred){
+        case 0:
+        SDL_RenderCopy(renderer, textures->counter.zero, NULL, &(timer->slot1));
+        break;
+        case 1:
+        SDL_RenderCopy(renderer, textures->counter.one, NULL, &(timer->slot1));
+        break;
+        case 2:
+        SDL_RenderCopy(renderer, textures->counter.two, NULL, &(timer->slot1));
+        break;
+        case 3:
+        SDL_RenderCopy(renderer, textures->counter.three, NULL, &(timer->slot1));
+        break;
+        case 4:
+        SDL_RenderCopy(renderer, textures->counter.four, NULL, &(timer->slot1));
+        break;
+        case 5:
+        SDL_RenderCopy(renderer, textures->counter.five, NULL, &(timer->slot1));
+        break;
+        case 6:
+        SDL_RenderCopy(renderer, textures->counter.six, NULL, &(timer->slot1));
+        break;
+        case 7:
+        SDL_RenderCopy(renderer, textures->counter.seven, NULL, &(timer->slot1));
+        break;
+        case 8:
+        SDL_RenderCopy(renderer, textures->counter.eight, NULL, &(timer->slot1));
+        break;
+        case 9:
+        SDL_RenderCopy(renderer, textures->counter.nine, NULL, &(timer->slot1));
+    }
+}
+
 int main(int agrc, char *argv[]){
 
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -255,13 +391,18 @@ int main(int agrc, char *argv[]){
     bool r_down = false;
     bool gameOver = false;
     int mousex, mousey;
+
     int lastWIDTH = 0, lastHEIGHT = 0;
     int lastGameWidth = 0, lastGameHeight = 0;
+
     int smileyMood = 0;
-    int totalMines;
     int difficulty = 1;
+    int totalMines;
     minePos mineTracker[100 * 100];
     int mineTrackerSize;
+    
+    int gameStartTime = 0;
+    int timePassed = 0;
 
     SDL_Rect mouseRect;
     mouseRect.w = 1;
@@ -342,9 +483,6 @@ int main(int agrc, char *argv[]){
                 timerRect.slot2.x += timerRect.slot1.w;
                 timerRect.slot3 = timerRect.slot2;
                 timerRect.slot3.x += timerRect.slot2.w;
-
-
-
             }
             for(int i = 0; i < gameWidth; i++){
                 for(int j = 0; j < gameHeight; j++){
@@ -364,6 +502,7 @@ int main(int agrc, char *argv[]){
         if(r_down){
             init_block(block);
             gameOver = false;
+            gameStartTime = time(NULL);
             for(int a = 0; a < (gameWidth * gameHeight); a++){
                 mineTracker[a].x = 0;
                 mineTracker[a].y = 0;
@@ -375,6 +514,10 @@ int main(int agrc, char *argv[]){
         SDL_RenderClear(renderer);
 
         if(!gameOver){
+            timePassed = time(NULL) - gameStartTime;
+            if(timePassed > 5){
+                gameOver = true;
+            }
             for(int i = 0; i < gameWidth; i++)
             {
                 for(int j = 0; j < gameHeight; j++)
@@ -450,6 +593,7 @@ int main(int agrc, char *argv[]){
         SDL_RenderDrawRect(renderer, &timerRect.slot1);
         SDL_RenderDrawRect(renderer, &timerRect.slot2);
         SDL_RenderDrawRect(renderer, &timerRect.slot3);
+        show_time(renderer, &textures, &timerRect, timePassed);
 
         show_grid(block, &textures, renderer);
     }
