@@ -678,12 +678,12 @@ int main(int agrc, char *argv[]){
                 SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
             }
             else if(difficulty == 2){
-                WIDTH = 440, HEIGHT = 550;
+                WIDTH = 560, HEIGHT = 700;
                 SDL_SetWindowSize(window, WIDTH, HEIGHT);
                 SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
             }
             else if(difficulty == 3){
-                WIDTH = 825, HEIGHT = 550;
+                WIDTH = 1050, HEIGHT = 700;
                 SDL_SetWindowSize(window, WIDTH, HEIGHT);
                 SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
             }
