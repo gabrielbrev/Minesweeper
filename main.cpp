@@ -678,7 +678,7 @@ int main(int agrc, char *argv[]){
                 SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
             }
             else if(difficulty == 2){
-                WIDTH = 560, HEIGHT = 700;
+                WIDTH = 520, HEIGHT = 650;
                 SDL_SetWindowSize(window, WIDTH, HEIGHT);
                 SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
             }
