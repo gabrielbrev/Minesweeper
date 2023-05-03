@@ -5,6 +5,7 @@
 
 int WIDTH = 200, HEIGHT = 300;
 int gameWidth = 0, gameHeight = 0;
+int difficulty = 0;
 bool gameWon = false;
 bool gameOver = false;
 
@@ -34,9 +35,6 @@ struct grid_textures{
     SDL_Texture *mine;
     SDL_Texture *blown_mine;
 
-    SDL_Texture *frame_easy;
-
-    SDL_Texture *smiley_neutral;
 };
 
 struct counter_textures{
@@ -59,8 +57,24 @@ struct smiley_textures{
     SDL_Texture *loss;
     SDL_Texture *win;
 };
+
+struct background_textures{
+    SDL_Texture *menu;
+    SDL_Texture *game;
+};
+
+struct difficulty_button_state{
+    SDL_Texture *up;
+    SDL_Texture *down;
+};
+struct difficulty_textures{
+    struct difficulty_button_state easy;
+    struct difficulty_button_state normal;
+    struct difficulty_button_state hard;
+};
 struct all_textures{
-    SDL_Texture *frame_easy;
+    struct difficulty_textures difficulty;
+    struct background_textures background;
     struct grid_textures grid;
     struct counter_textures counter;
     struct smiley_textures smiley;
@@ -171,10 +185,6 @@ void init_textures(gameTxtr *textures, SDL_Renderer *renderer){
     textures->counter.nine = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
 
-    surface = SDL_LoadBMP("./textures/frame/easy.bmp");
-    textures->frame_easy = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-
     surface = SDL_LoadBMP("./textures/smiley/neutral.bmp");
     textures->smiley.neutral = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
@@ -190,6 +200,29 @@ void init_textures(gameTxtr *textures, SDL_Renderer *renderer){
     surface = SDL_LoadBMP("./textures/smiley/click.bmp");
     textures->smiley.click = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
+
+    surface = SDL_LoadBMP("./textures/background/menu.bmp");
+    textures->background.menu = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+
+    surface = SDL_LoadBMP("./textures/difficulty/easy.bmp");
+    textures->difficulty.easy.up = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/difficulty/normal.bmp");
+    textures->difficulty.normal.up = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/difficulty/hard.bmp");
+    textures->difficulty.hard.up = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/difficulty/easy_pressed.bmp");
+    textures->difficulty.easy.down = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/difficulty/normal_pressed.bmp");
+    textures->difficulty.normal.down = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    surface = SDL_LoadBMP("./textures/difficulty/hard_pressed.bmp");
+    textures->difficulty.hard.down = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
 }
 
 int init_block(blocks square[][100]){
@@ -203,8 +236,19 @@ int init_block(blocks square[][100]){
 
     int totalmines = 0;
     int i, j, randnum = 0;
+    int maxmines;
+    switch(difficulty){
+        case 1:
+        maxmines = 10;
+        break;
+        case 2:
+        maxmines = 40;
+        break;
+        case 3:
+        maxmines = 99;
+    }
 
-    while(totalmines < (0.17 * (gameWidth * gameHeight))){
+    while(totalmines < maxmines){
         srand(time(NULL) * totalmines * randnum * SDL_GetTicks64());
         i = rand() % gameWidth;
         j = rand() % gameHeight;
@@ -407,7 +451,7 @@ void show_time(SDL_Renderer *renderer, gameTxtr *textures, tmrDisp *timer, int s
     }
 }
 
-void show_time(SDL_Renderer *renderer, gameTxtr *textures, mcDisp *mineCounter, int flags){
+void show_mines(SDL_Renderer *renderer, gameTxtr *textures, mcDisp *mineCounter, int flags){
     int unity, decimal, hundred;
     if(flags < 0){
         flags = 0;
@@ -524,6 +568,7 @@ int main(int agrc, char *argv[]){
         return 1;
     }
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
+    SDL_Surface *surface;
     SDL_Event event;
 
     gameTxtr textures;
@@ -531,9 +576,6 @@ int main(int agrc, char *argv[]){
 
     bool leftdown = false;
     bool rightdown = false;
-    int mousex, mousey;
-
-    int difficulty = 0;
     
     SDL_Rect mouseRect;
     mouseRect.w = 1;
@@ -550,7 +592,7 @@ int main(int agrc, char *argv[]){
     easyButton.y -= easyButton.h + 10;
     SDL_Rect hardButton = normalButton;
     hardButton.y += hardButton.h + 10;
-    
+
     bool running = true;
     bool chosen = false;
 
@@ -594,34 +636,28 @@ int main(int agrc, char *argv[]){
             }
         }
 
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        SDL_RenderDrawRect(renderer, &easyButton);
-        SDL_RenderDrawRect(renderer, &normalButton);
-        SDL_RenderDrawRect(renderer, &hardButton);
-
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_RenderCopy(renderer, textures.background.menu, NULL, NULL);
+        SDL_RenderCopy(renderer, textures.difficulty.easy.up, NULL, &easyButton);
+        SDL_RenderCopy(renderer, textures.difficulty.normal.up, NULL, &normalButton);
+        SDL_RenderCopy(renderer, textures.difficulty.hard.up, NULL, &hardButton);
+        
         switch(difficulty){
             case 1:
-            SDL_RenderDrawRect(renderer, &easyButton);
+            SDL_RenderCopy(renderer, textures.difficulty.easy.down, NULL, &easyButton);
             break;
             case 2:
-            SDL_RenderDrawRect(renderer, &normalButton);
+            SDL_RenderCopy(renderer, textures.difficulty.normal.down, NULL, &normalButton);
             break;
             case 3:
-            SDL_RenderDrawRect(renderer, &hardButton);
+            SDL_RenderCopy(renderer, textures.difficulty.hard.down, NULL, &hardButton);
         }
 
         SDL_RenderPresent(renderer);
     }
-    SDL_Delay(200);
+    SDL_Delay(300);
 
-    int lastWIDTH = 0, lastHEIGHT = 0;
-    int lastGameWidth = 0, lastGameHeight = 0;
-
-    bool firstRun = true;
     bool gameStarted = false;
     int mineCount = 0;
     int totalMines = 0;
@@ -642,6 +678,88 @@ int main(int agrc, char *argv[]){
     SDL_Rect frame;
     int blocksize;
     blocks block[100][100];
+
+    if(difficulty == 1){
+        WIDTH = 400, HEIGHT = 500;
+        SDL_SetWindowSize(window, WIDTH, HEIGHT);
+        SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+        surface = SDL_LoadBMP("./textures/background/easy.bmp");
+        textures.background.game = SDL_CreateTextureFromSurface(renderer, surface);
+        SDL_FreeSurface(surface);
+    }
+    else if(difficulty == 2){
+        WIDTH = 520, HEIGHT = 650;
+        SDL_SetWindowSize(window, WIDTH, HEIGHT);
+        SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+        surface = SDL_LoadBMP("./textures/background/normal.bmp");
+        textures.background.game = SDL_CreateTextureFromSurface(renderer, surface);
+        SDL_FreeSurface(surface);
+    }
+    else if(difficulty == 3){
+        WIDTH = 975, HEIGHT = 650;
+        SDL_SetWindowSize(window, WIDTH, HEIGHT);
+        SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+        surface = SDL_LoadBMP("./textures/background/hard.bmp");
+        textures.background.game = SDL_CreateTextureFromSurface(renderer, surface);
+        SDL_FreeSurface(surface);
+    }
+
+    blocksize = (WIDTH - 40)/gameWidth;
+
+    frame.w = blocksize * gameWidth;
+    frame.h = blocksize * gameHeight;
+    frame.x = WIDTH/2 - frame.w/2;
+    frame.y = HEIGHT - frame.h - frame.x;
+
+    smileyRect.w = 7*(frame.y - frame.x * 2)/8;
+    smileyRect.h = 7*(frame.y - frame.x * 2)/8;
+    if(difficulty == 3){
+        smileyRect.w -= 1;
+        smileyRect.h -= 1;
+    }
+    smileyRect.x = WIDTH/2 - smileyRect.w/2;
+    smileyRect.y = frame.y - frame.y/2 - smileyRect.h/2;
+
+    mineCounterRect.frame.w = 40 * 3;
+    mineCounterRect.frame.h = 60;
+    mineCounterRect.frame.x = (smileyRect.x + frame.x)/2 - mineCounterRect.frame.w/2;
+    mineCounterRect.frame.y = frame.y - frame.y/2 - mineCounterRect.frame.h/2;
+
+    mineCounterRect.slot1 = mineCounterRect.frame;
+    mineCounterRect.slot1.w = 40;
+    mineCounterRect.slot2 = mineCounterRect.slot1;
+    mineCounterRect.slot2.x += mineCounterRect.slot1.w;
+    mineCounterRect.slot3 = mineCounterRect.slot2;
+    mineCounterRect.slot3.x += mineCounterRect.slot2.w;
+
+    timerRect.frame = mineCounterRect.frame;
+    timerRect.frame.x = smileyRect.x + smileyRect.w + (smileyRect.x - (mineCounterRect.frame.x + mineCounterRect.frame.w));
+    timerRect.slot1 = timerRect.frame;
+    timerRect.slot1.w = 40;
+    timerRect.slot2 = timerRect.slot1;
+    timerRect.slot2.x += timerRect.slot1.w;
+    timerRect.slot3 = timerRect.slot2;
+    timerRect.slot3.x += timerRect.slot2.w;
+    
+    for(int i = 0; i < gameWidth; i++){
+        for(int j = 0; j < gameHeight; j++){
+            block[i][j].quadrant.w = blocksize;
+            block[i][j].quadrant.h = blocksize;
+            block[i][j].quadrant.x = frame.x + block[i][j].quadrant.w * i;
+            block[i][j].quadrant.y = frame.y + block[i][j].quadrant.h * j;
+        }
+    }
+
+    totalMines = init_block(block);
+    gameOver = false;
+    gameStarted = true;
+    gameWon = false;
+    gameStartTime = time(NULL);
+    totalFlags = 0;
+    for(int i = 0; i < (gameWidth * gameHeight); i++){
+        mineTracker[i].x = 0;
+        mineTracker[i].y = 0;
+    }
 
     while(running){
         leftdown = false;
@@ -669,72 +787,6 @@ int main(int agrc, char *argv[]){
                 }
             }
         }
-
-        if(firstRun){
-
-            if(difficulty == 1){
-                WIDTH = 400, HEIGHT = 500;
-                SDL_SetWindowSize(window, WIDTH, HEIGHT);
-                SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-            }
-            else if(difficulty == 2){
-                WIDTH = 520, HEIGHT = 650;
-                SDL_SetWindowSize(window, WIDTH, HEIGHT);
-                SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-            }
-            else if(difficulty == 3){
-                WIDTH = 975, HEIGHT = 650;
-                SDL_SetWindowSize(window, WIDTH, HEIGHT);
-                SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-            }
-
-            blocksize = (WIDTH - 40)/gameWidth;
-
-            frame.w = blocksize * gameWidth;
-            frame.h = blocksize * gameHeight;
-            frame.x = WIDTH/2 - frame.w/2;
-            frame.y = HEIGHT - frame.h - frame.x;
-
-            smileyRect.w = 7*(frame.y - frame.x * 2)/8;
-            smileyRect.h = 7*(frame.y - frame.x * 2)/8;
-            smileyRect.x = WIDTH/2 - smileyRect.w/2;
-            smileyRect.y = frame.y - frame.y/2 - smileyRect.h/2;
-
-            mineCounterRect.frame.w = 40 * 3;
-            mineCounterRect.frame.h = 60;
-            mineCounterRect.frame.x = (smileyRect.x + frame.x)/2 - mineCounterRect.frame.w/2;
-            mineCounterRect.frame.y = frame.y - frame.y/2 - mineCounterRect.frame.h/2;
-
-            mineCounterRect.slot1 = mineCounterRect.frame;
-            mineCounterRect.slot1.w = 40;
-            mineCounterRect.slot2 = mineCounterRect.slot1;
-            mineCounterRect.slot2.x += mineCounterRect.slot1.w;
-            mineCounterRect.slot3 = mineCounterRect.slot2;
-            mineCounterRect.slot3.x += mineCounterRect.slot2.w;
-
-            timerRect.frame = mineCounterRect.frame;
-            timerRect.frame.x = smileyRect.x + smileyRect.w + (smileyRect.x - (mineCounterRect.frame.x + mineCounterRect.frame.w));
-            timerRect.slot1 = timerRect.frame;
-            timerRect.slot1.w = 40;
-            timerRect.slot2 = timerRect.slot1;
-            timerRect.slot2.x += timerRect.slot1.w;
-            timerRect.slot3 = timerRect.slot2;
-            timerRect.slot3.x += timerRect.slot2.w;
-            
-            for(int i = 0; i < gameWidth; i++){
-                for(int j = 0; j < gameHeight; j++){
-                    block[i][j].quadrant.w = blocksize;
-                    block[i][j].quadrant.h = blocksize;
-                    block[i][j].quadrant.x = frame.x + block[i][j].quadrant.w * i;
-                    block[i][j].quadrant.y = frame.y + block[i][j].quadrant.h * j;
-                }
-            }       
-
-            lastWIDTH = WIDTH;
-            lastHEIGHT = HEIGHT;
-            lastGameWidth = gameWidth;
-            lastGameHeight = gameHeight;
-        }
         
         if(SDL_IntersectRect(&mouseRect, &smileyRect, &intersection) && leftdown){
             totalMines = init_block(block);
@@ -748,9 +800,7 @@ int main(int agrc, char *argv[]){
                 mineTracker[i].x = 0;
                 mineTracker[i].y = 0;
             }
-        }
-
-        SDL_RenderClear(renderer);
+        } 
 
         if(gameStarted){
             if(!gameOver){
@@ -777,7 +827,6 @@ int main(int agrc, char *argv[]){
                                             }
                                         }
                                     }
-                                    printf("%d\n", mineCount);
                                     mineTrackerSize = mineCount;
                                 }
                                 else{
@@ -857,7 +906,9 @@ int main(int agrc, char *argv[]){
             }
         }
 
-        SDL_RenderCopy(renderer, textures.frame_easy, NULL, NULL);
+        SDL_RenderClear(renderer);
+
+        SDL_RenderCopy(renderer, textures.background.game, NULL, NULL);
         
         if(smileyState.press > 0){
             SDL_RenderCopy(renderer, textures.smiley.pressed, NULL, &smileyRect);
@@ -879,23 +930,10 @@ int main(int agrc, char *argv[]){
             }  
         }
 
-        show_time(renderer, &textures, &mineCounterRect, totalMines - totalFlags);
+        show_mines(renderer, &textures, &mineCounterRect, totalMines - totalFlags);
         show_time(renderer, &textures, &timerRect, timePassed);
         show_grid(block, &textures, renderer);
 
-        if(firstRun){
-            totalMines = init_block(block);
-            gameOver = false;
-            gameStarted = true;
-            gameWon = false;
-            gameStartTime = time(NULL);
-            totalFlags = 0;
-            for(int i = 0; i < (gameWidth * gameHeight); i++){
-                mineTracker[i].x = 0;
-                mineTracker[i].y = 0;
-            }
-            firstRun = false;
-        }
     }
     
     SDL_Quit();
