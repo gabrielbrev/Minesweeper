@@ -659,6 +659,7 @@ int main(int agrc, char *argv[]){
     SDL_Delay(300);
 
     bool gameStarted = false;
+    bool firstClick = true;
     int mineCount = 0;
     int totalMines = 0;
     int totalFlags = 0;
@@ -790,6 +791,7 @@ int main(int agrc, char *argv[]){
         
         if(SDL_IntersectRect(&mouseRect, &smileyRect, &intersection) && leftdown){
             totalMines = init_block(block);
+            firstClick = true;
             gameOver = false;
             gameStarted = true;
             gameWon = false;
@@ -814,6 +816,12 @@ int main(int agrc, char *argv[]){
                     {
                         if(SDL_IntersectRect(&mouseRect, &block[i][j].quadrant, &intersection)){
                             if(leftdown && !block[i][j].hasflag){
+                                if(firstClick){
+                                    while(block[i][j].hasmine){
+                                        init_block(block);
+                                    }
+                                    firstClick = false;
+                                }
                                 block[i][j].isshown = true;
                                 if(block[i][j].hasmine){
                                     gameOver = true;
