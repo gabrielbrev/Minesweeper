@@ -906,7 +906,17 @@ int main(int agrc, char *argv[]){
                             delay = rand() % 3;
                         }
                         mineCount--;
-                    }     
+                    }
+                    if(mineCount == 0){
+                        for(int i = 0; i < gameWidth; i++){
+                            for(int j = 0; j < gameHeight; j++){
+                                if(block[i][j].hasmine && !block[i][j].hasflag){
+                                    block[i][j].isshown = true;
+                                }
+                            }
+                        }
+                        mineCount = -1;
+                    }  
                 }
                 else{
                     delay--;
