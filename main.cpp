@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <math.h>
+#include <ctime>
 #include <SDL2/SDL.h>
 
 int WIDTH = 200, HEIGHT = 300;
