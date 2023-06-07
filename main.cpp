@@ -2,7 +2,7 @@
 #include <iostream>
 #include <math.h>
 #include <ctime>
-#include <SDL2/SDL.h>
+#include "src/include/SDL2/SDL.h"
 
 int WIDTH = 200, HEIGHT = 300;
 int gameWidth = 0, gameHeight = 0;
@@ -681,6 +681,10 @@ int main(int agrc, char *argv[]){
     int blocksize;
     blocks block[100][100];
 
+    uint32_t frameStart;
+    int frameTime;
+    const int FRAME_DELAY = 1000 / 60;
+    
     if(difficulty == 1){
         WIDTH = 400, HEIGHT = 500;
         SDL_SetWindowSize(window, WIDTH, HEIGHT);
@@ -764,6 +768,8 @@ int main(int agrc, char *argv[]){
     }
 
     while(running){
+        frameStart = SDL_GetTicks64();
+
         leftdown = false;
         rightdown = false;
 
@@ -952,7 +958,11 @@ int main(int agrc, char *argv[]){
         show_mines(renderer, &textures, &mineCounterRect, totalMines - totalFlags);
         show_time(renderer, &textures, &timerRect, timePassed);
         show_grid(block, &textures, renderer);
-
+        
+        frameTime = SDL_GetTicks64() - frameStart;
+        if(frameTime < FRAME_DELAY){
+            SDL_Delay(FRAME_DELAY - frameTime);
+        }
     }
     
     SDL_Quit();
